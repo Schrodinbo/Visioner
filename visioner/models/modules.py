@@ -25,7 +25,7 @@ class Flatten(nn.Module):
 
 class LogitsHead(nn.Module):
 
-    def __init__(self, num_features=512, predefined_head=None, num_classes=10, global_pooling_mode='concat',
+    def __init__(self, num_features=512, predefined_out_layer=None, num_classes=10, global_pooling_mode='concat',
                  dropout=0.):
         super(LogitsHead, self).__init__()
 
@@ -45,9 +45,9 @@ class LogitsHead(nn.Module):
         if dropout > 0.:
             layers.append(torch.nn.Dropout(p=dropout))
 
-        if not isinstance(predefined_head, nn.Module) and predefined_head:
+        if not isinstance(predefined_out_layer, nn.Module) and predefined_out_layer:
             raise NotImplementedError('Predefined head component must be an object of nn.Module')
-        layers.append(nn.Linear(num_features, num_classes) if not predefined_head else predefined_head)
+        layers.append(nn.Linear(num_features, num_classes) if not predefined_out_layer else predefined_out_layer)
 
         self.head = nn.Sequential(*layers)
 

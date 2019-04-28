@@ -32,11 +32,11 @@ resnets = {
 
 
 class ResNetFeatureExtractor(nn.Module):
-    def __init__(self, arch, pretrained=True, with_pooling=True, **kwargs):
+    def __init__(self, arch, pretrained=True, with_pooling=True):
         super(ResNetFeatureExtractor, self).__init__()
         self.with_pooling = with_pooling
         assert arch in resnets, 'Only ResNet18/34/50/101/152 are supported at this moment.'
-        self.resnet = resnets[arch]['model'](pretrained=pretrained, **kwargs)
+        self.resnet = resnets[arch]['model'](pretrained=pretrained)
 
     def forward(self, x):
         x = self.resnet.conv1(x)
@@ -62,26 +62,28 @@ class VisionResNet(nn.Module):
                  global_pooling_mode='avg',
                  dropout=0.,
                  mode='logits',
-                 **kwargs):
+                 predefined_out_layer=None,
+                 predefined_head=None
+                 ):
         super(VisionResNet, self).__init__()
         self.arch = arch
         self.pretrained = pretrained
         self.global_pooling_mode = global_pooling_mode
         self.with_pooling = with_pooling
-        self.kwargs = kwargs
         self.num_classes = num_classes
         self.dropout = dropout
         self.mode = mode
         self.global_pooling = None
+        self.predefined_out_layer = predefined_out_layer
+
         self.body = self._create_body()
-        self.head = self._create_head()
+        self.head = self._create_head() if not predefined_head else predefined_head
 
     def _create_body(self):
         body = ResNetFeatureExtractor(
             self.arch,
             pretrained=self.pretrained,
-            with_pooling=self.with_pooling,
-            **self.kwargs
+            with_pooling=self.with_pooling
         )
         return body
 
@@ -92,7 +94,8 @@ class VisionResNet(nn.Module):
                 num_features=resnets[self.arch]['num_features'],
                 num_classes=self.num_classes,
                 global_pooling_mode=self.global_pooling_mode,
-                dropout=self.dropout
+                dropout=self.dropout,
+                predefined_out_layer=self.predefined_out_layer
             )
         else:
             raise NotImplementedError('Currently only the MLP head is supported.')
@@ -106,7 +109,7 @@ class VisionResNet(nn.Module):
 
 
 if __name__ == '__main__':
-    from visioner.models.test_resnet import check_resnet
+    from visioner.models.net_tests import check_resnet
 
     model = VisionResNet('resnet18')
     check_resnet(model)
