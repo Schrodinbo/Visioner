@@ -45,3 +45,9 @@ class AverageMeter:
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
+
+    def __str__(self):
+        return str(self.avg)
+
+    def __repr__(self):
+        return str(self.avg)

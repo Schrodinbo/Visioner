@@ -3,6 +3,21 @@
 # precision
 # fbeta (f1, f2..., micro and macro..)
 # auc
+import numpy as np
+
+
+def f2score(y_pred, y_true, beta_f2=2, threshold=0.1):
+    y_pred = np.array((y_pred > threshold), dtype=np.int8)
+
+    assert y_true.shape[0] == y_pred.shape[0]
+    tp = np.sum((y_true == 1) & (y_pred == 1))
+    fp = np.sum((y_true == 0) & (y_pred == 1))
+    fn = np.sum((y_true == 1) & (y_pred == 0))
+    p = tp / (tp + fp + 1e-15)
+    r = tp / (tp + fn + 1e-15)
+    f2 = (1 + beta_f2 ** 2) * p * r / (p * beta_f2 ** 2 + r + 1e-15)
+
+    return f2
 
 
 def fbeta(y_pred, y_true, threshold=0.1, beta=2, eps=1e-9, sigmoid=True):

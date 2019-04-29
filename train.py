@@ -3,7 +3,7 @@ from visioner.utils import set_seed, set_cudnn, multi2array
 from visioner.models import VisionResNet
 from visioner.learners import IMetLearner
 from visioner.losses.classification import BinaryFocalLoss
-from visioner.metrics.classfication import fbeta
+from visioner.metrics.classfication import f2score
 from visioner.datasets import IMetDataset
 import os
 import sys
@@ -14,6 +14,8 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+from sklearn.metrics import fbeta_score
 
 from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 
@@ -103,16 +105,35 @@ for trn_idx, val_idx in mskf_split:
         valid_loader = torch.utils.data.DataLoader(valid_set, **stage_config['data_loader']['valid_loader'])
 
         # TODO: use config
-        loss_fn = [nn.BCEWithLogitsLoss(), BinaryFocalLoss()]
-        loss_fn_weights = [1, 0.1]
+        # TODO: think about it, may need a mapping to map config to real loss functions
+        loss_dict = {
+            'BCEWithLogitsLoss': {
+                'loss_fn': nn.BCEWithLogitsLoss(),
+                'weight': 1.
+            },
+            'FocalLoss': {
+                'loss_fn': BinaryFocalLoss(),
+                'weight': .1
+            }
+        }
+
+        # TODO: use config
+        metric_dict = {
+            'F2': {
+                'metric_fn': f2score,
+                'args': [],
+                'kwargs': {
+                    'threshold': 0.1
+                }
+            }
+        }
 
         learner = IMetLearner(model,
                               optimizer,
                               train_loader,
                               secondary_dataloader=valid_loader,
-                              loss_fn=loss_fn,
-                              loss_fn_weights=loss_fn_weights,
-                              metrics=[fbeta],
+                              loss_dict=loss_dict,
+                              metric_dict=metric_dict,
                               lr_scheduler=scheduler,
                               mode='train')
 

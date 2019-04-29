@@ -7,9 +7,8 @@ class BaseLearner(ABC):
                  optimizer,
                  primary_dataloader,
                  secondary_dataloader=None,
-                 loss_fn=None,
-                 loss_fn_weights=None,
-                 metrics=None,
+                 loss_dict=None,
+                 metric_dict=None,
                  lr_scheduler=None,
                  start_epoch=0,
                  train_epoch=2,
@@ -18,12 +17,11 @@ class BaseLearner(ABC):
         self.optimizer = optimizer
         self.primary_dataloader = primary_dataloader
         self.secondary_dataloader = secondary_dataloader
-        self.loss_fn = loss_fn
-        self.loss_fn_weights = loss_fn_weights
-        self.mode = mode
+        self.loss_dict = loss_dict
+        self.metric_dict = metric_dict
         self.start_epoch = start_epoch
         self.train_epoch = train_epoch
-        self.metrics = metrics
+        self.mode = mode
         self.lr_scheduler = lr_scheduler
 
     @abstractmethod
@@ -39,7 +37,7 @@ class BaseLearner(ABC):
         pass
 
     @abstractmethod
-    def fit_one_batch(self, data):
+    def forward_one_batch(self, data):
         pass
 
     @abstractmethod
@@ -48,8 +46,4 @@ class BaseLearner(ABC):
 
     @abstractmethod
     def compute_losses(self, predicted, target):
-        pass
-
-    @abstractmethod
-    def save_model(self):
         pass
